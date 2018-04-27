@@ -1,0 +1,83 @@
+Ok, was will ich hier ausprobieren? 
+Ich habe eine Menge Tagebucheinträge - Dokumente, in denen ich über meine eigene Situation schreibe. 
+Ich fände es cool, einen Zeitstrahl zu sehen, in dem sichbar ist, 
+- wie viel ich in dem Monat jeweils geschrieben habe
+- wie die Mood war
+	=> Für die Mood verwende ich irgend ein AI mood framework. 
+- welche Themen in welchem Monat relevant waren (auch dafür kann ich mal schauen, was es für frameworks gibt) 
+
+Muss mal schauen, was es für mood frameworks gibt und in welcher sprache sie geschrieben sind. Potenziell Pyhon. Vielleich aber auch go - irgendwas, was tensorflow hat. 
+
+Analyse
+- Für jedes Dokument
+	- Lese das Datum vom Dateinamen ab.
+	- Bestimme die Mood der Datei
+	- Speichere sie als wert Mood(t) in einer Datenbank
+		- measure, individuum, value, timestamp
+
+Backend
+- Veröffentliche die Daten in einer API
+	- get(measure, start, end). E.g. get("mood", 2017-01-01, 2017-12-31)
+
+Frontend
+- Schreibe einen kleinen Client, der die Daten anfragt und anzeigt als schönes SVG-Diagramm zeichnet
+	- Und zwar: mittelwert UND varianz. Es ist doch interessant zu sehen, wenn die Mood in einem Monat abwechselnd sehr gut und sehr schlecht war. 
+
+Entweder das Frontend oder das Backend muss bitte interpolieren. 
+
+
+Bevor ich krassen AI-Shit mache, könnte ich erstmal ein cooles interface schreiben, in dem man den verlauf der Themen sieht. 
+Vielleicht kann man dann Gruppen von Wörtern bilden, die man verfolgen will. 
+Zum Beispiel
+ - Unsicherheit: vielleicht, "weiß nicht"
+ 
+
+Dann könnte ich Wörter wie folgt zählen: 
+ - erstmal zähle ich häufige wörter und filtere die 10 häufigsten raus. 
+ - dann kombiniere ich jedes Wort, das zu den 5% häufigsten gehört mit den 10 vorherigen wörtern (nur die, die auch zu den 5% häufigsten gehören)  (Kombinationskernel)
+
+Und man kann dann "add to group" -> "uncertainty" klicken und damit sein mood dashboard anpassen. 
+
+
+EMAILS! Yea! Man kann seine versendeten emails analysieren. die emails, die man versendet nach Themen und mood analysieren über den Verlauf der Zeit. 
+
+
+
+Idee: Einen Batch von texten mit Datum normalisiere ich gegen den gesamten batch
+Und dann wäre es geil ein diagramm von links nach rechts zu haben, das ich scrollen kann. Und bei dem Diagramm sind immer wieder Hügel für die wichtigsten Themen in dem Bereich. Und an jedem Maximum aber maximal einmal auf der Seite ist ein Label für den Hügel. 
+
+Awesome. 
+
+
+Also: wie interagiert der User mit der ganzen Geschichte? Er schreibt hin und wieder in sein tägliches Dokument. (Ich könnte halt auch sagen, dass der User posts macht. D.h. auf enter drückt, nachdem er fertig geschrieben hat. Das wäre einfacher zu realisieren, aber nicht so bequem - man könnte Änderungen verlieren, wenn man vergisst abzuschicken oder es technische Probleme gibt. Und man kann nicht editieren - das mache ich aber eh kaum. Also let's go, machen wir es post-basiert - als progressive web app?) 
+Jeder Post bekommt seinen timestamp. 
+Wie berechne ich in Abhängigkeit davon jetzt die topic density? 
+A) Ich berechne die word frequencies für jeden Post und interpoliere dann
+B) Ich fahre einen Kernel mit einer bestimmten Breite über die Zeitachse und addiere die word counts und total words (zum rand weniger gewichtet) und normiere für jede position. Yea, nice.
+
+Ich nehme B, das ist geil.
+
+D.h. ich brauche: 
+- Die reference (i.d.R. die gesamtmenge an text) => ratio pro Wort (d.h. count pro wort und total count => kann sukzessive in einer db gepflegt werden) 
+- Dann Parameter: 
+	- Von wann bis wann? 
+	- Wort (non-mvp: oder Gruppe von Wörtern, die von interesse sind (wenn Gruppe von Wörtern => eg. "uncertainty"-Group count wird inkrementiert, immer wenn eines der Wörter "vielleicht", "womöglich", "unsicher", ... gelesen wird))
+- die Posts von (startDate - kernelRadius) bis (endDate + kernelRadius) 
+
+Was ist mein Ziel im ersten Schritt?
+Eine JS Funktion schreiben, die ein svg generiert entsprechend der parameter. Ohne website. Soll einfach direkt so laufen. Node. Soll die Textdateien einfach einlesen. Dafür schreibe ich eine Komponente, die eine funktion "next" bietet, die einfach den nächsten post liefert. d.h. timestamp, inhalt & wordcounts. 
+Dann schreibe ich eine Komponente, die die wordcounts aus einer textdatei liest. 
+(Die zwei Komponenten werde ich später durch eine db ersetzen. Es gibt wirklich ein "import emails")  
+
+Das Hauptprorgamm nutzt die beiden Komponenten. Setzt den cursor auf (startDate - kernelRadius) und läd next posts, bis eines ein späteres Datum als (startDate + kernelRadius) hat.
+
+
+
+
+#BIS HIER HER IMPLEMENTIEREN#
+
+
+
+Ideen danach: 
+- word counts sind geil. Ein text durch wordcounts dargestellt ist meistens kleiner als der text selbst. 
+- bei den wordcounts kann ich kreuzprodukte untersuchen
