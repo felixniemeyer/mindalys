@@ -1,0 +1,28 @@
+{
+  "name": "mindalys",
+  "version": "1.0.0",
+  "description": "analyze timestamped text ",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/felixniemeyer/mindalys.git"
+  },
+  "keywords": [
+    "text",
+    "word",
+    "frequency",
+    "analysis",
+    "journal",
+    "diary",
+    "insight"
+  ],
+  "author": "felix niemeyer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/felixniemeyer/mindalys/issues"
+  },
+  "homepage": "https://github.com/felixniemeyer/mindalys#readme"
+}

@@ -71,12 +71,12 @@ Dann schreibe ich eine Komponente, die die wordcounts aus einer textdatei liest.
 
 Das Hauptprorgamm nutzt die beiden Komponenten. Setzt den cursor auf (startDate - kernelRadius) und läd next posts, bis eines ein späteres Datum als (startDate + kernelRadius) hat.
 
+Ich kann die texte aber auch erstmal in eine mongodb importieren und dann direkt auf der mongodb arbeiten. 
+
 
 
 
 #BIS HIER HER IMPLEMENTIEREN#
-
-
 
 Ideen danach: 
 - word counts sind geil. Ein text durch wordcounts dargestellt ist meistens kleiner als der text selbst. 
