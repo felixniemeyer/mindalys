@@ -10,7 +10,6 @@ var directory = "./clean-data/";
 MongoClient.connect(url, function(err, client) {
 	assert.equal(null, err); 
 	db = client.db('mindalys');
-	console.log('Successfully connected to db server');
 
 	var waitingFor = 1, successes = 0, failures = 0, allStarted = false;
 	var postCallback = function(success) {
@@ -19,27 +18,36 @@ MongoClient.connect(url, function(err, client) {
 			successes += success ? 1 : 0; 
 			failures += success ? 0 : 1; 
 		}
-		if(waitingFor <= 0 && allStarted) {
+		if(waitingFor < 1 && allStarted) {
 			client.close(); 
-			console.log(`${successes} successes and ${failures} failures`);
+			console.log(`${successes} successfully imported. ${failures} failures.`);
 		}
 	};
 	var post = function(db, millisecs, data, user) {
 		waitingFor += 1; 
-		console.log(`Waiting for ${waitingFor}`);
 		dbWrapper.post(db, millisecs, data, "felixn", postCallback); 
 	};
 
 	fs.readdir(directory, (err, files) => {
+		var started = 0; 
+		var incrementStarted = function(){
+			started += 1; 
+			if(started == files.length){
+				allStarted = true; 
+			}
+		}
 		files.forEach(file => { 
-			console.log('processing next file ' + file); 
-			millisecs = new Date(file.substr(0,10)).getTime();
+			var date = new Date(file.substr(0,10));
+			var millisecs = date.getTime();
+			
 			fs.readFile(directory+file, 'utf8', function(err, data) {
 				post(db, millisecs, data, "felixn"); 
-				console.log(data.substr(0,100)); 
+				incrementStarted();
 			});
-		});
+		})
 	});
-	allStarted = true; 
+	
 	postCallback();
 });
+
+

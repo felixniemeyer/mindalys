@@ -73,12 +73,74 @@ Das Hauptprorgamm nutzt die beiden Komponenten. Setzt den cursor auf (startDate 
 
 Ich kann die texte aber auch erstmal in eine mongodb importieren und dann direkt auf der mongodb arbeiten. 
 
-
-
-
 #BIS HIER HER IMPLEMENTIEREN#
 
-Ideen danach: 
+In jedem fall: Post Funktion 
+	- muss die words counten und mitablegen + total words
+	- muss die word counts zur reference addieren + total words auch addieren
+	- einträge: user und book. Reference dann pro book anlegen.
+
+Was wäre eine schöne Architektur? 
+	- create post
+	- get post
+	- analyse
+		- wo soll die analyse mit dem kernel passieren?
+			- Im backend? 
+				Vorteile: wenn der Zeitraum groß ist, werden in relation zur Informationsbasis verhältnismäßig wenige Daten übermittelt. 
+				Nachteile: wenn der Zeitraum klein ist, werden in Relation verhältnismäßig viele Daten übermittelt. 
+				Bei jedem Navigieren des Clients wird eine Anfrage an den Server gestellt
+			- Im forntend?
+				Beim Navigieren muss nur gegebenenfalls daten nachgeladen werden (evtl. kompliziert)
+		- als progressive web app wäre das natürlich cool - aber das ist noch nicht ganz ausgereift. Es wäre schon geil... 
+			und es würde die Frage von oben beantworten. Analyse würde immer auf der Clientseite durchgeführt werden.
+			OK, progressive web app. here we go.
+			- Posting und Analyse auf der Clientseite 
+			- Posting sync über server 
+
+Wenn der Client etwas analysieren möchte: 
+	- der service worker fragt einen Timeframe ab
+	- der server returned eine liste der betroffenen IDs
+		- wenn der service worker einen post einer bestimmten ID noch nicht hat, dann fragt er diese speziellen Posts ab
+
+Hmm, diese Dreiteilung möchte ich jetzt mal untersuchen und spezifizieren: 
+- Client: 
+	- Erlaubt es einen Post zu formulieren
+	- Erlaubt es analysedaten zu rendern
+- Service Worker
+	- post(text) 
+		- persistiert die posts lokal
+		- versuch, an den server zu senden
+	- getAnalysisData(from, to, kernelSize, stepSize)
+		- checken, 
+			- dass (to - from) / stepSize vernünftig ist
+			- dass (to - from) / kernelSize vernünftig ist
+		- posts aus dem Zeitfenster abfragen aus ner mongodb 
+		- kernel darüber bewegen
+			- Liste führen für alle posts die gerade im Kernel liegen
+	- pre-analysiert die posts lokal: word counts + total words
+	- sobald dem Server alle lokalen changes mitgeteilt wurden, fragt er vom Server die neuen global stats für das book ab und überschreibt damit den lokalen Stand.
+	
+Clients pullen updates, wenn sie gestartet werden oder wenn analyse Anfragen an den Service Worker gestellt werden. 
+
+#analysis
+- Welche keywords sind interessant, also was inkludiere ich in den analyseergebnissen? alles, was über 2 und unter 0.5 ist? ja, das klingt gut.
+	- Dafür muss ich erstmal eine Liste betreiben: wenn in irgendeinem Step ein Wort den Threshold überschreitet, nehme ich es in die Liste auf.
+	- Dann, beim Ergebnisse versenden, verkürze ich jede Liste pro Step auf die relevanten Wörter
+	- Im Ergebnis wird auch eine Liste aller relevanten wörtern mit 
+		- maxvalue & respectiveStep verschickt
+		- minvalue & respectiveStep verschickt
+		- Diese Infos kann der Client fürs labelling verwenden + als info anzeigen (e.g. 5 most outstanding topics vs. 5 least outstanding topics => click brings you to the graphic) 
+- Beim einfügen muss noch das book erstellt werden + die Wordcounts gemacht werden + die book stats geupdated werden (immer per word & gesamt) 
+
+#resultrendering
+- 3 Möglichkeiten: 
+	- Immer ganzes svg rendern
+	- Svg editieren
+	- Svg Pages shiften
+	- Ich denke ich rendere das ganze svg und vertraue auf die Fähigkeiten des Browsers geclippte Inhalte nicht zu rendern... denn ob ich es jetzt in pages unterteile, oder der browser einen spacial index anwendet um die zu rendernden bereiche auszuwählen macht keinen großen Unterschied bezügl. der Performance. D.h. der universelle Ansatz ist hier annährend so gut wie ein spezifischer Ansatz und damit falle ich gern auf den universellen Ansatz zurück. 
+
+
+### IDEEN danach: ###
 - word counts sind geil. Ein text durch wordcounts dargestellt ist meistens kleiner als der text selbst. 
 - bei den wordcounts kann ich kreuzprodukte untersuchen
 - testen und showcasen kann ich das tool indem ich Bücher analysiere - jede Seite ist 1 Stunde oder so. 
