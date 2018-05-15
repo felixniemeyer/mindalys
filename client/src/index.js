@@ -1,4 +1,5 @@
 import TinyDatePicker from 'tiny-date-picker'; 
+import ResultChart from './chart-generator.js';
 import './style.scss';
 import '../node_modules/tiny-date-picker/tiny-date-picker.min.css'
 
@@ -12,6 +13,14 @@ function init() {
 	datepickFrom = TinyDatePicker(document.getElementById('datepick-from'), { mode: 'dp-permanent' });
 	datepickTo = TinyDatePicker(document.getElementById('datepick-to'), { mode: 'dp-permanent' });
 	document.getElementById('analyze-button').addEventListener('click', analyze); 
+	datepickTo.setState({
+		selectedDate: new Date("2018-04-01"),
+		highlightedDate: new Date("2018-04-01")
+	});
+	datepickFrom.setState({
+		selectedDate: new Date("2016-04-01"),
+		highlightedDate: new Date("2016-04-01")
+	});
 }
 
 function updateTimestamp() {
@@ -28,7 +37,7 @@ function setAnalysisStatus(msg, color) {
 var getNumericSetting = function(setting, specialValues){
 	var value = document.getElementById(setting).value; 
 	console.log("val = " + value);
-	if(specialValues.indexOf(value) >= 0) {
+	if(specialValues && specialValues.indexOf(value) >= 0) {
 		return value; 
 	} else {
 		value = Number(value);
@@ -42,7 +51,7 @@ var getNumericSetting = function(setting, specialValues){
 }
 
 function analyze() {
-	setAnalysisStatus('');
+	setAnalysisStatus('analyzing...', '#00a');
 	if(datepickFrom.state.selectedDate == null || datepickTo.state.selectedDate == null) {
 		setAnalysisStatus('no dates specified');
 		return; 
@@ -57,35 +66,51 @@ function analyze() {
 	var stepSize = getNumericSetting('step-size', ['auto']);
 	if(kernelRadius == 'auto'){
 		if(stepSize == 'auto'){
-			stepSize = (to - from) / 100; 
+			stepSize = (to - from) / 20; 
 		}
 		kernelRadius = 5*stepSize;
 	} else if(stepSize == 'auto'){
 		stepSize = kernelRadius / 5;
 	}
+	var minFrequencyPeak = getNumericSetting('min-frequency-peak');
+	var minOccurences = getNumericSetting('min-occurences');
+	var user = document.getElementById('user').value;
+	var book = document.getElementById('book').value;
 
 	console.log('analyzing');
 	var req = new XMLHttpRequest(); 
 	req.addEventListener('load', function() {
 		try {
-			setAnalysisStatus(`Results: ${this.responseText}`, '#0a0');
-			var result = JSON.parse(this.responseText); 
+			var results = JSON.parse(this.responseText); 
 		} catch(err) {
-			console.log(`Failed`); 
+			console.log(`Failed to parse analyze response: ${err}`); 
+			return; 
 		};
+		displayChart(results, from, to); 
 	});
-	console.log(kernelRadius); 
-	console.log(stepSize); 
 	req.open('POST', '/analyze');
 	req.setRequestHeader('Content-Type', 'application/json'); 
 	req.send(JSON.stringify({
-		user: 'felix', 
-		book: 'journal',
+		user: user, 
+		book: book,
 		from: from, 
 		to: to,
-		kernel: kernelRadius,
-		step: stepSize
+		kernelRadius: kernelRadius,
+		stepSize: stepSize
 	}));
+}
+
+function displayChart(results, from, to){
+	var chartContainer = document.getElementById('chartContainer');
+	var chart = new ResultChart(results);
+	var svg = chart.generateElement(
+		from, 
+		0,
+		to, 
+		10,
+		chartContainer.clientWidth,
+		200)
+	document.getElementById('chartContainer').appendChild(svg); 
 }
 
 function post() {
@@ -103,7 +128,7 @@ function post() {
 	req.open('POST', '/post'); 
 	req.setRequestHeader('Content-Type', 'application/json');
 	req.send(JSON.stringify({
-		user: 'felix', 
+		user: 'felixn', 
 		book: 'journal', 
 		text: document.getElementById('paper').textContent,
 		timestamp: timestamp

@@ -54,10 +54,11 @@ function run(mongoDb) {
 					req.body.to, 
 					req.body.kernelRadius, 
 					req.body.stepSize,
+					req.body.minFrequencyPeak, 
+					req.body.minOccurences,
 					(results) => { res.send(JSON.stringify(results) ) },
 					(err) => { res.send('error') }
 				);
-				res.send('{}');
 			},
 			(err) => {
 				console.error('Failed to authorize post request: ' + err); 
@@ -76,22 +77,18 @@ function authorize(user, authorizedCallback, unauthorizedCallback) {
 	authorizedCallback(); //authorize 
 }
 
-async function analyze(user, book, from, to, radius, stepSize, successCb, failureCb) {
+async function analyze(user, book, from, to, kernelRadius, stepSize, minFrequencyPeak, minOccurences, successCb, failureCb) {
 	var postsCursor = db.collection('posts').find({
-		$query: {
 			user: user, 
 			book: book, 
 			timestamp: {$gt: from - kernelRadius, $lt: to + kernelRadius}
-		},
-		$orderby: {
-			timestamp: 1
-		}
-	}); 
-	var getSteps = calculateSteps(new PostsBuffer(postCursor), from, to, radius, stepSize);
-	var getBook = db.collection('books').findOne({
+		}).sort({ timestamp: 1});
+	console.log((await postsCursor.clone().toArray()).length);
+	var getSteps = calculateSteps(new PostsBuffer(postsCursor), from, to, kernelRadius, stepSize);
+	var getBook = db.collection('books').find({
 		user: user, 
 		book: book
-	});
+	}).limit(1).next();
 
 	var results = {
 		book: await getBook,
@@ -99,91 +96,113 @@ async function analyze(user, book, from, to, radius, stepSize, successCb, failur
 		extrema: {}
 	};
 	normalizeAndFindExtrema(results);
-	filterProminentWords(results, threshold);
+	filterProminentWords(results, minFrequencyPeak, minOccurences); //make threshold a parameter
 	successCb(results); 
 }
 
+function filterProminentWords(results, minFreq, minOccs) {
+	var minTotalOccurences = minOccs || 10; 
+	var minFrequencyPeak = minFreq || 4;
+	var step; 
+	for(var word in results.book.wordCounts) {
+		if(word in results.extrema){
+			if(results.extrema[word].maxValue < minFrequencyPeak
+				|| results.book.wordCounts[word] < minTotalOccurences) {
+				delete results.extrema[word];
+				delete results.book.wordCounts[word];
+				for(var time in results.steps){
+					step = results.steps[time];
+					delete step.wordCounts[word];
+					delete step.normalizedWordFrequencies[word];
+				}
+			}
+		} else {
+			delete results.book.wordCounts[word];
+		}
+	}
+}
+	
+
 function normalizeAndFindExtrema(results) {
-	results.steps.forEach((time, step) => {
-		step.wordCounts.forEach((word, wordInfo) => {
-			var wordFrequency = (wordInfo.count / step.totalCount);
-			var bookWordFrequency = book.wordCounts[word] / book.totalWordCount; 
+	for(var time in results.steps) {
+		step = results.steps[time];
+		step.normalizedWordFrequencies = {};
+		for(var word in step.wordCounts) {
+			count = step.wordCounts[word];
+			var wordFrequency = (count / step.totalWordCount);
+			var bookWordFrequency = results.book.wordCounts[word] / results.book.totalWordCount; 
 			var normalizedWordFrequency = wordFrequency / bookWordFrequency; 
-			results.steps.normalizedWordFrequencies[word] = normalizedWordFrequency;
+			step.normalizedWordFrequencies[word] = normalizedWordFrequency;
 			updateExtrema(results.extrema, word, normalizedWordFrequency, time); 
-		});
-	});
+		};
+	};
 }
 
 function updateExtrema(extrema, word, value, time) {
-	if(!(word in results.extrema)) {
-		results.extrema[word] = {
-			minValue: 0,
+	if(!(word in extrema)) {
+		extrema[word] = {
+			minValue: 1,
 			minValueTime: time, 
-			maxValue: 0,
+			maxValue: 1,
 			maxValueTime: time
 		};
 	}
-	var wordExtrema = results.extrema[word]; 
+	var wordExtrema = extrema[word]; 
 	if(value > wordExtrema.maxValue) {
 		wordExtrema.maxValue = value;
 		wordExtrema.maxValueTime = time; 
 	}
 	if(value < wordExtrema.minValue) {
-		wordExtrema.maxValue = value;
-		wordExtrema.maxValueTime = time; 
+		wordExtrema.minValue = value;
+		wordExtrema.minValueTime = time; 
 	}
 }
 
-function calculateSteps(posts, time, to, radius, stepSize) {
-	var resolve, reject; 
-	var promise = Promise(function(res, rej) {
-		resolve = res; 
-		reject = rej; 
+function calculateSteps(postsBuffer, time, to, kernelRadius, stepSize) {
+	return new Promise(function(resolve, reject) {
+		calculateStep(postsBuffer, time, to, kernelRadius, stepSize, {}, resolve, reject);
 	});	
-	calculateStep(posts, time, to, radius, stepSize, {}, resolve, reject);
-	return promise; 
 }
 
-function calculateStep(posts, time, to, radius, stepSize, steps, resolve, reject){
-	var step = {
-		wordCount: {},
-		totalWordCount: 0
-	};
-	posts.getPostsInRange(
-		time - radius, 
-		time + radius, 
+function calculateStep(postsBuffer, time, to, kernelRadius, stepSize, steps, resolve, reject){
+	postsBuffer.getPostsInRange(time - kernelRadius, time + kernelRadius).then(
 		posts => {
+			console.log(`Calculating step ${time}. Number of posts = ${posts.length()}`);
+			steps[time] = {
+				wordCounts: {},
+				totalWordCount: 0
+			};
 			posts.forEach(post => { 
-				addWeightedPostStats(step, post, time, radius) 
+				addWeightedPostStats(steps[time], post, time, kernelRadius) 
 			});
-			steps[time] = step;
 			if(time + stepSize < to){
-				calculateStep(time + stepSize, to, radius, stepSize, steps, finished, aborted)
+				calculateStep(postsBuffer, time + stepSize, to, kernelRadius, stepSize, steps, resolve, reject)
 			} else {
 				resolve(steps);
 			}
 		}
 	);
-	//use nextTick => don't make stack grow	
 }
 
-function addWeightedPostStats(step, post, time, radius) {
-	var distance = Math.min(1, Math.abs(time - post.timestamp) / radius);
-	var weight = 1 - Math.pow(distance / radius, 2);
-	post.wordCounts.forEach((word, count) => {
-		if(word in results.wordInfo) {
-			step.wordCount[word] += count*weight; 
-		} else {
-			step.wordCount[word] = count*weight
-		}
+function addWeightedPostStats(step, post, time, kernelRadius) {
+	var normedDistance = Math.min(1, Math.abs(time - post.timestamp) / kernelRadius);
+	console.log("normed distance: " + normedDistance); 
+	var weight = 1 - Math.pow(normedDistance, 2);
+	if(weight > 0) {
+		for(var word in post.wordCounts) {
+			var count = post.wordCounts[word];
+			if(word in step.wordCounts) {
+				step.wordCounts[word] += count*weight; 
+			} else {
+				step.wordCounts[word] = count*weight
+			}
+		};
 		step.totalWordCount += post.totalWordCount*weight; 
 	}
 }
 
 function post(user, book, text, timestamp, successCb, failureCb) {
 	var postInfo = PostAnalyzer.count(text); 
-	console.log(postInfo); 
 	db.collection('posts').insertOne({
 			user: user, 
 			book: book, 
@@ -198,7 +217,31 @@ function post(user, book, text, timestamp, successCb, failureCb) {
 				console.error('Error when persisting the post in mongodb: ' + err); 
 				failureCb();
 			} else {
-				successCb();
+				var increments = {
+					totalWordCount: postInfo.totalWordCount
+				}
+				for(key in postInfo.wordCounts) {
+					increments["wordCounts."+key] = postInfo.wordCounts[key];
+				}
+				db.collection('books').updateOne(
+					{
+						user: user, 
+						book: book
+					},
+					{
+						$inc: increments
+					},
+					{
+						upsert: true
+					},
+					(err, res) => {
+						if(err){
+							console.log("Err on incrementing book values: " + err);
+						} else {
+							successCb();
+						}
+					}
+				);
 			}
 		}
 	);

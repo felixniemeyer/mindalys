@@ -132,6 +132,9 @@ Clients pullen updates, wenn sie gestartet werden oder wenn analyse Anfragen an 
 		- Diese Infos kann der Client fürs labelling verwenden + als info anzeigen (e.g. 5 most outstanding topics vs. 5 least outstanding topics => click brings you to the graphic) 
 - Beim einfügen muss noch das book erstellt werden + die Wordcounts gemacht werden + die book stats geupdated werden (immer per word & gesamt) 
 
+#bugs
+- replace non-breaking spaces. There is also lots of commas and shit still going on in the counted words.
+
 #resultrendering
 - 3 Möglichkeiten: 
 	- Immer ganzes svg rendern
@@ -144,3 +147,11 @@ Clients pullen updates, wenn sie gestartet werden oder wenn analyse Anfragen an 
 - word counts sind geil. Ein text durch wordcounts dargestellt ist meistens kleiner als der text selbst. 
 - bei den wordcounts kann ich kreuzprodukte untersuchen
 - testen und showcasen kann ich das tool indem ich Bücher analysiere - jede Seite ist 1 Stunde oder so. 
+
+### NEXT STEPS ###
+- Make import script use the server
+- zum besseren ausprobieren: 
+	- weniger schritte
+- book normalisierung
+	- beim posten ins book eintragen
+- gewichtung funktioniert noch nicht
