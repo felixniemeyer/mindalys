@@ -34,10 +34,11 @@ function setAnalysisStatus(msg, color) {
 	statusDiv.style.color = color || "#a00";
 }
 
-var getNumericSetting = function(setting, specialValues){
+var getNumericSetting = function(setting, specialValues, factor){
 	var value = document.getElementById(setting).value; 
-	console.log("val = " + value);
-	if(specialValues && specialValues.indexOf(value) >= 0) {
+	factor = factor || 1;
+	specialValues = specialValues || [];
+	if(specialValues.indexOf(value) >= 0) {
 		return value; 
 	} else {
 		value = Number(value);
@@ -45,7 +46,7 @@ var getNumericSetting = function(setting, specialValues){
 			setAnalysisStatus(`${setting} has to be a number or ${specialValues.join(', ')}`);
 			return undefined; 
 		} else {
-			return value * 24 * 60 * 60 * 1000; //days => millisecs
+			return value * factor; //days => millisecs
 		}
 	}
 }
@@ -62,8 +63,8 @@ function analyze() {
 		setAnalysisStatus('from date must be earlier than to date'); 
 		return; 
 	}
-	var kernelRadius = getNumericSetting('kernel-radius', ['auto']);
-	var stepSize = getNumericSetting('step-size', ['auto']);
+	var kernelRadius = getNumericSetting('kernel-radius', ['auto'], 24 * 60 * 60 * 1000);
+	var stepSize = getNumericSetting('step-size', ['auto'], 24 * 60 * 60 * 1000);
 	if(kernelRadius == 'auto'){
 		if(stepSize == 'auto'){
 			stepSize = (to - from) / 20; 
@@ -72,8 +73,6 @@ function analyze() {
 	} else if(stepSize == 'auto'){
 		stepSize = kernelRadius / 5;
 	}
-	var minFrequencyPeak = getNumericSetting('min-frequency-peak');
-	var minOccurences = getNumericSetting('min-occurences');
 	var user = document.getElementById('user').value;
 	var book = document.getElementById('book').value;
 
@@ -96,7 +95,9 @@ function analyze() {
 		from: from, 
 		to: to,
 		kernelRadius: kernelRadius,
-		stepSize: stepSize
+		stepSize: stepSize,
+		minFrequencyPeak: getNumericSetting('min-frequency-peak'),
+		minOccurences: getNumericSetting('min-occurences')
 	}));
 }
 

@@ -83,7 +83,6 @@ async function analyze(user, book, from, to, kernelRadius, stepSize, minFrequenc
 			book: book, 
 			timestamp: {$gt: from - kernelRadius, $lt: to + kernelRadius}
 		}).sort({ timestamp: 1});
-	console.log((await postsCursor.clone().toArray()).length);
 	var getSteps = calculateSteps(new PostsBuffer(postsCursor), from, to, kernelRadius, stepSize);
 	var getBook = db.collection('books').find({
 		user: user, 
@@ -167,7 +166,6 @@ function calculateSteps(postsBuffer, time, to, kernelRadius, stepSize) {
 function calculateStep(postsBuffer, time, to, kernelRadius, stepSize, steps, resolve, reject){
 	postsBuffer.getPostsInRange(time - kernelRadius, time + kernelRadius).then(
 		posts => {
-			console.log(`Calculating step ${time}. Number of posts = ${posts.length()}`);
 			steps[time] = {
 				wordCounts: {},
 				totalWordCount: 0
@@ -186,7 +184,6 @@ function calculateStep(postsBuffer, time, to, kernelRadius, stepSize, steps, res
 
 function addWeightedPostStats(step, post, time, kernelRadius) {
 	var normedDistance = Math.min(1, Math.abs(time - post.timestamp) / kernelRadius);
-	console.log("normed distance: " + normedDistance); 
 	var weight = 1 - Math.pow(normedDistance, 2);
 	if(weight > 0) {
 		for(var word in post.wordCounts) {
