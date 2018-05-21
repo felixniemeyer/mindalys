@@ -94,9 +94,14 @@ async function analyze(user, book, from, to, kernelRadius, stepSize, minFrequenc
 		steps: await getSteps,
 		extrema: {}
 	};
-	normalizeAndFindExtrema(results);
-	filterProminentWords(results, minFrequencyPeak, minOccurences); //make threshold a parameter
-	successCb(results); 
+	
+	if(results.book != null) {
+		normalizeAndFindExtrema(results);
+		filterProminentWords(results, minFrequencyPeak, minOccurences); //make threshold a parameter
+		successCb(results); 
+	} else {
+		failureCb("No such book");
+	}
 }
 
 function filterProminentWords(results, minFreq, minOccs) {

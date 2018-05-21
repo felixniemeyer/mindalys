@@ -14,7 +14,7 @@ function init() {
 	datepickTo = TinyDatePicker(document.getElementById('datepick-to'), { mode: 'dp-permanent' });
 	document.getElementById('analyze-button').addEventListener('click', analyze); 
 	datepickTo.setState({
-		selectedDate: new Date("2017-07-01"),
+		selectedDate: new Date("2017-07-16"),
 		highlightedDate: new Date("2018-04-01")
 	});
 	datepickFrom.setState({
@@ -138,8 +138,8 @@ function post() {
 	req.open('POST', '/post'); 
 	req.setRequestHeader('Content-Type', 'application/json');
 	req.send(JSON.stringify({
-		user: 'felixn', 
-		book: 'journal', 
+		user: document.getElementById('user').value,
+		book: document.getElementById('book').value,
 		text: document.getElementById('paper').textContent,
 		timestamp: timestamp
 	})); 

@@ -46,7 +46,7 @@ ResultChart.prototype.appendPaths = function(svg) {
 			pathCoordinates[word].push(
 				String(time * this.pixelPerTime + this.xOffset)
 				 + " "
-				 + String(this.coordSysHeight - (step.normalizedWordFrequencies[word] || 1) * this.pixelPerFrequency + this.yOffset)
+				 + String(this.coordSysHeight - (step.normalizedWordFrequencies[word] || 0) * this.pixelPerFrequency + this.yOffset)
 			);
 		}
 	}	

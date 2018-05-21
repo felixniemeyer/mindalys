@@ -36,15 +36,16 @@ module.exports = function(){
 		manual.push('The following options are available: '); 
 		for(key in this.argSpecs){
 			var argSpec = this.argSpecs[key]; 
-			var argDescription = key;
+			var argDescr = key;
 			if(argSpec.expectValue){
-				argDescription += "<value>";  
+				argDescr += " <value>";  
 			}
-			argDescription += "\t"+argSpec.name; 
+			argDescr += ' '.repeat(argDescr.length < 20 ? 20 - argDescr.length : 0);
+			argDescr += "\t"+argSpec.name; 
 			if(argSpec.defaultValue){
-				argDescription += ` (default = ${argSpec.defaultValue})`;
+				argDescr += ` (default = ${argSpec.defaultValue})`;
 			}
-			manual.push(argDescription); 
+			manual.push(argDescr); 
 		}
 		return manual.join('\n');
 	};
