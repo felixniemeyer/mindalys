@@ -129,7 +129,7 @@ wingless a more interesting phenomenon is their dissimil-
 arity in every particular except shape and size. 
 `
 
-var analyzer = require('./post-analyzer.js');
+var analyzer = require('../post-analyzer.js');
 
 info = analyzer.count(testString + testString).wordCounts;
 

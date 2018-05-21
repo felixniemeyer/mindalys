@@ -1,4 +1,4 @@
-var FIFO = require('./fifo.js');
+var FIFO = require('../fifo.js');
 
 var queue = new FIFO(); 
 var allRight = true; 

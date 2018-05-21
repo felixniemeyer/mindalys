@@ -35,6 +35,13 @@ body {
 	display: block; 
 }
 
+
+#chart-container{
+	width: 100%; 
+	overflow-x: scroll; 
+	overflow-y: hidden; 
+}
+
 #date {
 	text-align: left; 
 	margin-left: 0.4em;

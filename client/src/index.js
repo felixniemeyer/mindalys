@@ -14,11 +14,11 @@ function init() {
 	datepickTo = TinyDatePicker(document.getElementById('datepick-to'), { mode: 'dp-permanent' });
 	document.getElementById('analyze-button').addEventListener('click', analyze); 
 	datepickTo.setState({
-		selectedDate: new Date("2018-04-01"),
+		selectedDate: new Date("2017-07-01"),
 		highlightedDate: new Date("2018-04-01")
 	});
 	datepickFrom.setState({
-		selectedDate: new Date("2016-04-01"),
+		selectedDate: new Date("2017-01-01"),
 		highlightedDate: new Date("2016-04-01")
 	});
 }
@@ -102,16 +102,25 @@ function analyze() {
 }
 
 function displayChart(results, from, to){
-	var chartContainer = document.getElementById('chartContainer');
-	var chart = new ResultChart(results);
-	var svg = chart.generateElement(
+	var chartContainer = document.getElementById('chart-container');
+	chartContainer.innerHTML = ""; 
+	var maxFrequency = 0; 
+	for(var word in results.extrema) {
+		if(results.extrema[word].maxValue > maxFrequency){
+			maxFrequency = results.extrema[word].maxValue;
+		}
+	}
+	console.log(maxFrequency); 
+	var chart = new ResultChart(
+		results,
 		from, 
 		0,
 		to, 
-		10,
-		chartContainer.clientWidth,
-		200)
-	document.getElementById('chartContainer').appendChild(svg); 
+		maxFrequency,
+		chartContainer.clientWidth*8,
+		600);
+	var svg = chart.generateSvg();
+	chartContainer.appendChild(svg); 
 }
 
 function post() {

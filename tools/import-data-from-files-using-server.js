@@ -2,16 +2,15 @@ var https = require('https');
 var request = require('request');
 var fs = require('fs'); 
 
-var ArgParser = require('./arg-parser.js');
+var ArgParser = require('../arg-parser.js')()
+var argParser = new ArgParser({
+	'-d': {name: 'directory', expectValue: true, defaultValue: '../clean-data/'},
+	'-u': {name: 'user', expectValue: true, defaultValue: 'felixn'},
+	'-b': {name: 'book', expectValue: true, defaultValue: 'journal'},
+	'--help': {name: 'showHelp'}
+});
 
-var args = ArgParser.parse(
-	process.argv.slice(2), 
-	{
-		'-d': {name: 'directory', expectValue: true, defaultValue: './clean-data/'},
-		'-u': {name: 'user', expectValue: true, defaultValue: 'felixn'},
-		'-b': {name: 'book', expectValue: true, defaultValue: 'journal'}
-	}
-);
+var args = argParser.parse(process.argv); 
 
 var requestOptions = { 
 	host: 'localhost',
@@ -24,8 +23,6 @@ var requestOptions = {
 	}
 };
 requestOptions.agent = new https.Agent(requestOptions);
-
-console.log(args); 
 
 function run(){
 	fs.readdir(args.directory, (err, files) => {
@@ -79,4 +76,8 @@ function post(text, timestamp) {
 	});
 }
 
-run();
+if(args.showHelp){
+	console.log(argParser.getManual()); 
+} else {
+	run();
+}

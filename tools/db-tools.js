@@ -1,11 +1,14 @@
-var ArgParser = require('./arg-parser.js');
-var dbw = require('./db-wrapper.js');
+#!/usr/bin/env node
 
-var args = ArgParser.parse(process.argv.splice(2), {
+var dbw = require('../db-wrapper.js');
+var ArgParser = require('../arg-parser.js')();
+var argParser = new ArgParser({
 	'clean-up': {name: 'cleanUp'},
 	'count-posts': {name: 'countPosts'},
 	'book-info': {name: 'bookInfo'}
 });
+var args = argParser.parse(process.argv);
+console.log(argParser.getManual()); 
 
 dbw.getPool(
 	async function(db) {

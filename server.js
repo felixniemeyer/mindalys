@@ -120,7 +120,6 @@ function filterProminentWords(results, minFreq, minOccs) {
 		}
 	}
 }
-	
 
 function normalizeAndFindExtrema(results) {
 	for(var time in results.steps) {
