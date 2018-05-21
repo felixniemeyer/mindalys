@@ -110,6 +110,9 @@ function filterProminentWords(results, minFreq, minOccs) {
 	var step; 
 	for(var word in results.book.wordCounts) {
 		if(word in results.extrema){
+			if(word == "newborn") {
+				console.log("DEBUG! found newborn"); 
+			}
 			if(results.extrema[word].maxValue < minFrequencyPeak
 				|| results.book.wordCounts[word] < minTotalOccurences) {
 				delete results.extrema[word];
@@ -135,6 +138,9 @@ function normalizeAndFindExtrema(results) {
 			var wordFrequency = (count / step.totalWordCount);
 			var bookWordFrequency = results.book.wordCounts[word] / results.book.totalWordCount; 
 			var normalizedWordFrequency = wordFrequency / bookWordFrequency; 
+			if(word == "newborn") {
+				console.log("DEBUG: updated extrema for newborn, wordFrequency = " + wordFrequency); 				console.log("bookfrequ: " + bookWordFrequency);
+			}
 			step.normalizedWordFrequencies[word] = normalizedWordFrequency;
 			updateExtrema(results.extrema, word, normalizedWordFrequency, time); 
 		};

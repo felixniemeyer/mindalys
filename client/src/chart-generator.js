@@ -44,9 +44,9 @@ ResultChart.prototype.appendPaths = function(svg) {
 		step = this.results.steps[time]; 
 		for(var word in this.results.book.wordCounts){
 			pathCoordinates[word].push(
-				String(time * this.pixelPerTime + this.xOffset)
+				(time * this.pixelPerTime + this.xOffset).toFixed(2)
 				 + " "
-				 + String(this.coordSysHeight - (step.normalizedWordFrequencies[word] || 0) * this.pixelPerFrequency + this.yOffset)
+				 + (this.coordSysHeight - (step.normalizedWordFrequencies[word] || 0) * this.pixelPerFrequency + this.yOffset).toFixed(2)
 			);
 		}
 	}	
@@ -66,8 +66,8 @@ ResultChart.prototype.appendLabels = function(svg) {
 	for(var word in this.results.extrema){
 		extrema = this.results.extrema[word]; 
 		label = createSVGElement('text');
-		label.setAttribute('x', extrema.maxValueTime * this.pixelPerTime + this.xOffset);
-		label.setAttribute('y', this.coordSysHeight - extrema.maxValue * this.pixelPerFrequency + this.yOffset - 5); 
+		label.setAttribute('x', (extrema.maxValueTime * this.pixelPerTime + this.xOffset).toFixed(2));
+		label.setAttribute('y', (this.coordSysHeight - extrema.maxValue * this.pixelPerFrequency + this.yOffset - 5).toFixed(2)); 
 		label.setAttribute('fill', stringToColor(word));
 		label.setAttribute('text-anchor', 'middle');
 		label.textContent = word; 
@@ -80,7 +80,7 @@ ResultChart.prototype.appendAxes = function(svg) {
 	var labelDistanceInTime = 200 / this.pixelPerTime; 
 	for(var i = this.timeFrom; i < this.timeTo; i += labelDistanceInTime){
 		label = createSVGElement('text'); 
-		label.setAttribute('x', i * this.pixelPerTime + this.xOffset);
+		label.setAttribute('x', (i * this.pixelPerTime + this.xOffset).toFixed(2));
 		label.setAttribute('y', this.height - 5); 
 		label.setAttribute('fill', '#111');
 		label.setAttribute('text-anchor', 'middle');
