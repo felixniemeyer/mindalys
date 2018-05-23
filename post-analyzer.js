@@ -22,6 +22,8 @@ module.exports = {
 					result.wordCounts[word]++;
 				else
 					result.wordCounts[word] = 1; 
+				if(word == "unbestimmten")
+					console.log("found 'unbestimmten' count is " + result.wordCounts[word] + " now");
 			}
 		});
 		return result; 
