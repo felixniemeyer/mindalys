@@ -23,8 +23,9 @@ function run(mongoDb) {
 
 	app.use(express.static('client/dist'));
 
+	var postRequestCount = 0; 
 	app.post('/post', bodyParser.json(), function(req, res) {
-		console.log('Received post request: ' + JSON.stringify(req.body));
+		console.log('Received '+ postRequestCount++ +'. post request');
 		authorize(req.body.user,
 			() => {
 				post(
@@ -43,8 +44,9 @@ function run(mongoDb) {
 		);
 	});
 	
+	var analyzeRequestCount = 0; 
 	app.post('/analyze', bodyParser.json(), function(req, res) {
-		console.log('Received analysis request: ' + JSON.stringify(req.body)); 
+		console.log('Received ' + analyzeRequestCount++ + '. analysis request: ' + JSON.stringify(req.body)); 
 		authorize(req.body.user, 
 			() => {
 				analyze(
@@ -110,8 +112,9 @@ function filterProminentWords(results, minFreq, minOccs) {
 	var step; 
 	for(var word in results.book.wordCounts) {
 		if(word in results.extrema){
-			if(word == "newborn") {
-				console.log("DEBUG! found newborn"); 
+			if(word == "unbestimmten") {
+				console.log("DEBUG! found unbestimmten"); 
+				console.log("maxValue = " + results.extrema[word].maxValue);
 			}
 			if(results.extrema[word].maxValue < minFrequencyPeak
 				|| results.book.wordCounts[word] < minTotalOccurences) {
@@ -138,8 +141,9 @@ function normalizeAndFindExtrema(results) {
 			var wordFrequency = (count / step.totalWordCount);
 			var bookWordFrequency = results.book.wordCounts[word] / results.book.totalWordCount; 
 			var normalizedWordFrequency = wordFrequency / bookWordFrequency; 
-			if(word == "newborn") {
-				console.log("DEBUG: updated extrema for newborn, wordFrequency = " + wordFrequency); 				console.log("bookfrequ: " + bookWordFrequency);
+			if(word == "unbestimmten") {
+				console.log("DEBUG: updated extrema for unbestimmten, wordFrequency = " + wordFrequency); 				console.log("bookfrequ: " + bookWordFrequency);
+				console.log("results.book.wordCounts[word] = " + results.book.wordCounts[word]);
 			}
 			step.normalizedWordFrequencies[word] = normalizedWordFrequency;
 			updateExtrema(results.extrema, word, normalizedWordFrequency, time); 
@@ -152,7 +156,7 @@ function updateExtrema(extrema, word, value, time) {
 		extrema[word] = {
 			minValue: 1,
 			minValueTime: time, 
-			maxValue: 1,
+			maxValue: 0,
 			maxValueTime: time
 		};
 	}
