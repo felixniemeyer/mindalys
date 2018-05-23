@@ -57,7 +57,7 @@ The server should log some post request and store these posts in the db for a us
 You could now use the [client](https://github.com/felixniemeyer/mindalys-client) to find out, what words appear most often over time in that book. 
 
 The analysis result could look like this:
-![picture not in repo](https://raw.githubusercontent.com/felixniemeyer/mindalys/master/sample-output.svg)
+![picture not in repo](https://raw.githubusercontent.com/felixniemeyer/mindalys/master/sample-output.png)
 
 # Bugs
 
