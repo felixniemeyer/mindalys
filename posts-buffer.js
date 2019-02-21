@@ -11,7 +11,7 @@ PostsBuffer.prototype.getPostsInRange = function(from, to) {
 	var that = this; 
 	return new Promise(async function(resolve, reject){
 		await that.loadPostsUntil(to); 
-		that.clearPostsEarlierThan(from);
+		//that.clearPostsEarlierThan(from); //disable for debug
 		resolve(that.posts); 
 	});
 };

@@ -5,14 +5,10 @@ module.exports = {
 			totalWordCount: 0
 		};
 
-		var charCodes = [36, 60, 62, 10,40,41,46,44,58,59,33,63,39,8212,8217, 8220, 8221]; 
-		var replaceString = "[\-" + charCodes.map(code => {
-			return String.fromCodePoint(code);
-		}).join('') + "]";
-
-		text = text.replace(RegExp(replaceString, 'g'), ' ');
+    var replaceString = '(?!\\p{L}).';
+		text = text.replace(RegExp(replaceString, 'ugm'), ' ');
 	
-		var words = text.split(/ +/);
+		var words = text.split(/[ \n]+/);
 
 		words.forEach(word => {
 			word = word.toLowerCase();

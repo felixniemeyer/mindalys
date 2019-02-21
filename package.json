@@ -30,7 +30,7 @@
     "express": "^4.16.3",
     "kerberos": "0.0.23",
     "mongodb": "^3.0.7",
-    "request": "^2.85.0",
+    "request": "^2.88.0",
     "tiny-date-picker": "^3.2.5",
     "xmlhttprequest": "^1.8.0"
   }

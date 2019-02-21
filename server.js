@@ -112,10 +112,6 @@ function filterProminentWords(results, minFreq, minOccs) {
 	var step; 
 	for(var word in results.book.wordCounts) {
 		if(word in results.extrema){
-			if(word == "unbestimmten") {
-				console.log("DEBUG! found unbestimmten"); 
-				console.log("maxValue = " + results.extrema[word].maxValue);
-			}
 			if(results.extrema[word].maxValue < minFrequencyPeak
 				|| results.book.wordCounts[word] < minTotalOccurences) {
 				delete results.extrema[word];
@@ -138,13 +134,8 @@ function normalizeAndFindExtrema(results) {
 		step.normalizedWordFrequencies = {};
 		for(var word in step.wordCounts) {
 			count = step.wordCounts[word];
-			var wordFrequency = (count / step.totalWordCount);
 			var bookWordFrequency = results.book.wordCounts[word] / results.book.totalWordCount; 
-			var normalizedWordFrequency = wordFrequency / bookWordFrequency; 
-			if(word == "unbestimmten") {
-				console.log("DEBUG: updated extrema for unbestimmten, wordFrequency = " + wordFrequency); 				console.log("bookfrequ: " + bookWordFrequency);
-				console.log("results.book.wordCounts[word] = " + results.book.wordCounts[word]);
-			}
+      var normalizedWordFrequency = count / bookWordFrequency;
 			step.normalizedWordFrequencies[word] = normalizedWordFrequency;
 			updateExtrema(results.extrema, word, normalizedWordFrequency, time); 
 		};
@@ -198,8 +189,9 @@ function calculateStep(postsBuffer, time, to, kernelRadius, stepSize, steps, res
 
 function addWeightedPostStats(step, post, time, kernelRadius) {
 	var normedDistance = Math.min(1, Math.abs(time - post.timestamp) / kernelRadius);
-	var weight = 1 - Math.pow(normedDistance, 2);
-	if(weight > 0) {
+	if(normedDistance <= 1) {
+    // var weight = 1 - Math.pow(normedDistance, 2);
+    var weight = ( Math.cos(normedDistance * Math.PI ) + 1 ) / 2;
 		for(var word in post.wordCounts) {
 			var count = post.wordCounts[word];
 			if(word in step.wordCounts) {

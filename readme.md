@@ -9,22 +9,25 @@ git clone git@github.com:felixniemeyer/mindalys.git
 cd mindalys
 ```
 
-Install dependencies
+Install js dependencies
 ```
 npm install
 ```
 
+install mongodb and start the mongo service.
+
+### Certificate
 Create a https self signed certificate: 
 ```
 cd ssl-cert
 openssl req \
-	-config localhost.cnf \
-	-new -x509 -sha256 \
-	-newkey rsa:2048 \
-	-nodes \
-	-keyout key.pem \
-	-days 365 \
-	-out cert.pem
+-config localhost.cnf \
+-new -x509 -sha256 \
+-newkey rsa:2048 \
+-nodes \
+-keyout key.pem \
+-days 365 \
+-out cert.pem
 ```
 
 And run server
